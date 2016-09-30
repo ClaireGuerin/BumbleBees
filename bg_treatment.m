@@ -53,7 +53,9 @@ backImage = median(backCalc,3); % try also mode or mean --> which one renders a 
 
 %% Example background subtraction for single image
 
-imCur  = read(mov,100);
+frame = 200;
+imCur  = read(mov,frame);
+disp(['Frame #',num2str(frame)])
 imCur = rgb2gray(imCur);
 
 imDiff = abs(imCur - uint8(backImage));
@@ -102,3 +104,54 @@ tic
 codes = locateCodes(imDiff2); title('Identified tags')
 toc
 %%
+
+%%Extract chunks of images containing single bees for individual tag
+%%identification
+%%1: Create Background
+
+nBackFrames = 20;
+backFrameInds = round(linspace(1,nframes,nBackFrames)); % regularly spaced-out frame indices
+
+%Create empty matrix for background calculation
+backCalc = nan(mov.Height, mov.Width,nBackFrames);
+for i = 1:nBackFrames
+    im = read(mov,backFrameInds(i));
+    imshow(im);
+    im = rgb2gray(im);
+    backCalc(:,:,i) = im;
+end
+
+backImage = median(backCalc,3); % try also mode or mean --> which one renders a better background mask?
+
+%%2: Spot bees
+
+frame = 200;
+imCur  = read(mov,frame);
+disp(['Frame #',num2str(frame)])
+imCur = rgb2gray(imCur);
+
+imDiff = abs(imCur - uint8(backImage));
+%%
+intThresh = 10;
+
+%Threshold into binary image
+imBW = imDiff > intThresh;
+figure(1)
+imshow(imCur)
+figure(2)
+imshow(imDiff)
+figure(3)
+imshow(imBW)
+
+se = strel('line',11,90);
+erodedI = imerode(imBW,se);
+dilatedI = imdilate(erodedI,se);
+
+s = regionprops(dilatedI,'centroid'); %Calculate centroids for connected components in the image using regionprops.
+centroids = cat(1, s.Centroid); %Concatenate structure array containing centroids into a single matrix.
+
+%Display binary image with centroid locations superimposed.
+imshow(dilatedI) 
+hold on
+plot(centroids(:,1),centroids(:,2), 'b*')
+hold off
