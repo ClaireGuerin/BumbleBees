@@ -143,7 +143,7 @@ imshow(imDiff)
 figure(3)
 imshow(imBW)
 
-se = strel('line',11,90);
+se = strel('disk',5);
 erodedI = imerode(imBW,se);
 dilatedI = imdilate(erodedI,se);
 
