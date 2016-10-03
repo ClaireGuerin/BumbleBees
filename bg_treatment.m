@@ -145,9 +145,9 @@ imshow(imBW)
 
 imshow(im)
 [x y] = ginput(2);
-radius = sqrt(sum([(x(1)-x(2)).^2 (y(1)-y(2)).^2]))/4;
+radius = sqrt(sum([(x(1)-x(2)).^2 (y(1)-y(2)).^2]));
 
-se = strel('disk',double(uint8(radius)));
+se = strel('disk',double(uint8(radius/10)));
 erodedI = imerode(imBW,se);
 dilatedI = imdilate(erodedI,se);
 
@@ -160,10 +160,10 @@ hold on
 plot(centroids(:,1),centroids(:,2), 'b*')
 hold off
 
-
-s2 = regionprops(dilatedI,'BoundingBox');
-%boxes = cat(1, s2.BoundingBox);
-for i = 1:size(s2,1)
-    subImage = imcrop(im, s2(i).BoundingBox+10);
+tic
+for i = 1:size(s,1)
+    subImage = imcrop(im, [s(i).Centroid(1)-radius*2 s(i).Centroid(2)-radius*2 radius*4 radius*4]);
     codes = locateCodes(subImage)
+    tracking{i} = [codes.number codes.frontX codes.frontY]
 end
+toc
