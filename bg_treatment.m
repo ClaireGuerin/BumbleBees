@@ -155,3 +155,10 @@ imshow(dilatedI)
 hold on
 plot(centroids(:,1),centroids(:,2), 'b*')
 hold off
+
+s2 = regionprops(dilatedI,'BoundingBox');
+%boxes = cat(1, s2.BoundingBox);
+for i = 1:size(s2,1)
+    subImage = imcrop(im, s2(i).BoundingBox+10);
+    codes = locateCodes(subImage)
+end
