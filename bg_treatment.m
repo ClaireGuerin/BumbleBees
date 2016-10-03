@@ -132,7 +132,7 @@ imCur = rgb2gray(imCur);
 
 imDiff = abs(imCur - uint8(backImage));
 %%
-intThresh = 10;
+intThresh = 5;
 
 %Threshold into binary image
 imBW = imDiff > intThresh;
@@ -143,7 +143,11 @@ imshow(imDiff)
 figure(3)
 imshow(imBW)
 
-se = strel('disk',5);
+imshow(im)
+[x y] = ginput(2);
+radius = sqrt(sum([(x(1)-x(2)).^2 (y(1)-y(2)).^2]))/4;
+
+se = strel('disk',double(uint8(radius)));
 erodedI = imerode(imBW,se);
 dilatedI = imdilate(erodedI,se);
 
@@ -155,6 +159,7 @@ imshow(dilatedI)
 hold on
 plot(centroids(:,1),centroids(:,2), 'b*')
 hold off
+
 
 s2 = regionprops(dilatedI,'BoundingBox');
 %boxes = cat(1, s2.BoundingBox);
