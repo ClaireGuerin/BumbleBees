@@ -1,8 +1,58 @@
+%imaqhwinfo
+%imaqtool
+%imaqhwinfo('pointgrey',1)
+
+imaqreset;
+vid = videoinput('pointgrey', 1, 'F7_Mono8_1280x960_Mode0');
+src = getselectedsource(vid);
+
+vid.FramesPerTrigger = 1; % is this necessary?
+
+src.Exposure = 2.413635;
+src.Brightness = 20.507812;
+src.Gain = 10;
+src.Shutter = 16.621;
+src.Gamma = 1.4;
+
+triggerconfig(vid,'manual');
+
+vidRes = vid.VideoResolution;
+nBands = vid.NumberOfBands;
+frameRate = src.FrameRate;
+
+start(vid)
+VidStatus = 1;
+
+out=vid;
+
+%%
+
 [filename, pathname] = uigetfile('*.avi'); % user input: movie file name and path
 
 mov = VideoReader([pathname filename]); % import file
 
 %%
+start(vid)
+bgAcqDuration = 20; % how many seconds to run test?in seconds
+nBackFrames = 20;
+nFrames = frameRate*bgAcqDuration;
+
+backFrameInds = round(linspace(1,nFrames,nBackFrames)); % regularly spaced-out frame indices
+Hz = 10;
+backCalc = nan(vidRes(2),vidRes(1),nBackFrames);
+tic
+while toc < backAcqDuration
+    
+    im = peekdata(vid,1);
+    pause(1000/Hz);
+    %backCalc(:,:,i) = im;
+end
+
+backImage = median(backCalc,3);
+
+%%
+
+
 nframes = mov.NumberOfFrames; % number of frames in the video
 
 for i = 1:nframes % for each frame
@@ -36,9 +86,6 @@ im = rgb2gray(im); % convert image from color to grey scale
 %    end
 %end
 %%
-
-nBackFrames = 20;
-backFrameInds = round(linspace(1,nframes,nBackFrames)); % regularly spaced-out frame indices
 
 %Create empty matrix for background calculation
 backCalc = nan(mov.Height, mov.Width,nBackFrames);
