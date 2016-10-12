@@ -6,7 +6,7 @@ imaqreset;
 vid = videoinput('pointgrey', 1, 'F7_Mono8_1280x960_Mode0');
 src = getselectedsource(vid);
 
-vid.FramesPerTrigger = 1; % is this necessary?
+vid.FramesPerTrigger = inf;
 
 src.Exposure = 2.413635;
 src.Brightness = 20.507812;
@@ -32,8 +32,12 @@ out=vid;
 mov = VideoReader([pathname filename]); % import file
 
 %%
-start(vid)
-bgAcqDuration = 20; % how many seconds to run test?in seconds
+
+bgAcqDuration = 20; % how many seconds to acquire background?
+
+% OPTION #1: we want only a certain amount of frames, regularly spaced out
+% in time, over the background acquisition time.
+
 nBackFrames = 20;
 nFrames = frameRate*bgAcqDuration;
 
@@ -41,15 +45,36 @@ backFrameInds = round(linspace(1,nFrames,nBackFrames)); % regularly spaced-out f
 Hz = 10;
 backCalc = nan(vidRes(2),vidRes(1),nBackFrames);
 tic
-while toc < backAcqDuration
+while toc < bgAcqDuration
     
-    im = peekdata(vid,1);
-    pause(1000/Hz);
+    if size(find(backFrameInds == round(toc))) > 0
+        im = peekdata(vid,1);
     %backCalc(:,:,i) = im;
+    flushdata(vid)
 end
 
 backImage = median(backCalc,3);
 
+% OPTION #2: we calculate background over all the frames within
+% background acquisition time.
+
+%nBackFrames = 20
+nFrames = frameRate*bgAcqDuration;
+%backFrameRate = round(nFrames / nBackFrames)
+backCalc = nan(vidRes(2),vidRes(1),0);
+
+i = 1
+
+tic
+while toc < bgAcqDuration
+
+    im = peekdata(vid,1);
+    backCalc(:,:,i) = im;
+    flushdata(vid);
+    i = i + 1;
+end
+
+backImage = median(backCalc,3);
 %%
 
 
