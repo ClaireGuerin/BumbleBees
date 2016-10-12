@@ -55,26 +55,14 @@ end
 
 backImage = median(backCalc,3);
 
+%%
 % OPTION #2: we calculate background over all the frames within
 % background acquisition time.
 
-%nBackFrames = 20
 nFrames = frameRate*bgAcqDuration;
-%backFrameRate = round(nFrames / nBackFrames)
-backCalc = nan(vidRes(2),vidRes(1),0);
+Hz = 10;
+test = backgroundCalculation(vid,bgAcqDuration,Hz);
 
-i = 1
-
-tic
-while toc < bgAcqDuration
-
-    im = peekdata(vid,1);
-    backCalc(:,:,i) = im;
-    flushdata(vid);
-    i = i + 1;
-end
-
-backImage = median(backCalc,3);
 %%
 
 
