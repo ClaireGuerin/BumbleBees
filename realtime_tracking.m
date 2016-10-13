@@ -53,4 +53,7 @@ while toc < expDuration
     end 
     
     hold off
+    flushdata(vid)
 end
+
+stop(vid)
