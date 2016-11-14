@@ -58,7 +58,7 @@ triggerconfig(vid,'manual');
 
 %% Background Calculation
 
-BAD = 10;   % background acquisition duration (in seconds)
+BAD = 120;   % background acquisition duration (in seconds)
 depth = 5;    % number of images to use for creating background
 backIm = calculateBackground(vid,BAD,depth);
 imshow(uint8(backIm));
@@ -80,11 +80,16 @@ title('Please indicate approximate bee size');
 close ALL
 radius = sqrt(sum([(x(1)-x(2)).^2 (y(1)-y(2)).^2]));
 
-%%
+%% Create empty matrix / array to store tracking data
+
+trackData = struct('ID', zeros(0,1), 'Time', zeros(0,1), 'Centroid', zeros(0,2), 'Front', zeros(0,2));
+
+%% Run real-time tracking & save tracking data
 tic
 while toc < expDuration
 
     hold on
+    t = datetime('now');
     im = peekdata(vid,1);
    
     [beePos, beeRad] = spotBees(im, backIm, intThresh, radius);
@@ -98,6 +103,8 @@ while toc < expDuration
             plot(beeX, beeY, 'r*');
             txt1 = num2str(codes.number);
             text(beeX,beeY,txt1, 'color', 'r')
+            newData = [codes.number t codes.Centroid [codes.frontX codes.frontY]];
+            trackData = [trackData; newData];
         end
     end 
     
@@ -105,21 +112,23 @@ while toc < expDuration
     flushdata(vid)
 end
 
+save 'trackData.mat' trackData
+
 stop(vid)
 
 %% Test timing
-backImU = uint8(backIm); %Convert background image to integer, faster caculation
-cropSize = 100;
-while 1
+%backImU = uint8(backIm); %Convert background image to integer, faster caculation
+%cropSize = 100;
+%while 1
     %%
-    tic
-    im = peekdata(vid,1);
-    imd = abs(im - backImU);
-    imbw = imd > intThresh;
+    %tic
+    %im = peekdata(vid,1);
+    %imd = abs(im - backImU);
+    %imbw = imd > intThresh;
     
-            codes = locateCodes(im, 'vis', 0); % identify bee codes without showing cropped image
+            %codes = locateCodes(im, 'vis', 0); % identify bee codes without showing cropped image
 
-   toc
+   %toc
    
   
-end
+%end
