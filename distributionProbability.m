@@ -11,11 +11,11 @@ nIndivPerCol = 20;
 sizes = nan(nIndivPerCol*nCol, 4);
 indices = [1:20;21:40;41:60];
 
-for i = 1:nCol
-    f = sizFiles{i};
-    ind = indices(i,:);
+for nCollectedFrames = 1:nCol
+    f = sizFiles{nCollectedFrames};
+    ind = indices(nCollectedFrames,:);
     colSizes = csvread(f);
-    sizes(ind,1) = i;
+    sizes(ind,1) = nCollectedFrames;
     sizes(ind,2:4) = colSizes';
 end
 
@@ -46,18 +46,29 @@ disp(['On average, a bee is ', num2str(meanLength), ' inches long and ', num2str
 
 %% CALCULATE DISTRIBUTION PROBABILITY
 
+scalesFile = fopen('vidScalesChambers.txt');
+C_text = textscan(scalesFile,'%s',2,'Delimiter',',');
+C_data = textscan(scalesFile,'%s %n', 'Delimiter',',');
+fclose(scalesFile);
+fileS = C_data{1};
+scales = C_data{2};
+
 rng default % for reproducibility
 
 tagScale = 0.11;
 nSample = 20;
 nBees = numel(beeTagNumber);
-theoFrames = 8*nSample*nBees;
+% nSampleFramesPerBee = 48;
+nVideos = 8;
 
-allBW = nan(800,800,theoFrames);
+allBWFora = nan(800,800,nSample * nVideos/2 * nBees);
+allBWNest = nan(800,800,nSample * nVideos/2 * nBees);
 % allBWFora = nan(500,500,8*nSample*nBees);
 % allBWNest = nan(500,500,8*nSample*nBees);
 
-i = 0;
+%%
+
+nCollectedFrames = 0;
 
 for Bs = 1:nBees
     
@@ -72,12 +83,7 @@ for Bs = 1:nBees
     vidFiles = {j.name}';
     nVid = size(vidFiles, 1);
     
-    scalesFile = fopen('vidScales.txt');
-    C_text = textscan(scalesFile,'%s',2,'Delimiter',',');
-    C_data = textscan(scalesFile,'%s %n', 'Delimiter',',');
-    fclose(scalesFile);
-    fileS = C_data{1};
-    scales = C_data{2};
+%     nSampleFramesPerVid = round(nSampleFramesPerBee / nVid);
 
     for video = 1:nVid
         
@@ -87,7 +93,7 @@ for Bs = 1:nBees
         mov = VideoReader(vidName);
         nFrames = mov.NumberOfFrames;
         
-        vidScale = scales(strcmp(fileS, vidName));
+        vidScale = scales(strcmp(fileS, chbr));
         sizeBPX = sizeB * vidScale / tagScale;
         
         trackName = strcat(vidName,'_tracked.mat');
@@ -111,11 +117,14 @@ for Bs = 1:nBees
         nSampleAdjusted = min(nSample,numel(detectFrames));
         sampleFrames = datasample(detectFrames, nSampleAdjusted, 'replace', false);
         
+%         while nCollectedFrames < nSampleAdjusted
+        
         for frm = 1:numel(sampleFrames)
             %
-            %         catchFrame = sampleFrames(1);
-            i = i + 1;
+%             catchFrame = sampleFrames(1);
+            nCollectedFrames = nCollectedFrames + 1;
             
+%             try
             catchFrame = sampleFrames(frm);
             im = read(mov,catchFrame);
             im = rgb2gray(im);
@@ -167,16 +176,20 @@ for Bs = 1:nBees
 %             plot(xcenter, ycenter, 'ro')
             close
             
-            rowShift = ceil((size(allBW(:,:,1),1) - size(BW,1))/2) + 1 : ceil((size(allBW(:,:,1),1) - size(BW,1))/2) + size(BW,1);
-            colShift = ceil((size(allBW(:,:,1),2) - size(BW,2))/2) + 1 : ceil((size(allBW(:,:,1),2) - size(BW,2))/2) + size(BW,2);
-            
-%             if chbr == 'FC'
-%                 allBWFora(1:size(rotatedIm,1),1:size(rotatedIm,2),i) = BW;
-%             elseif chbr == 'NC'
-%                 allBWNest(1:size(rotatedIm,1),1:size(rotatedIm,2),i) = BW;
-%             end
+  
+            if chbr == 'FC'
+                
+                rowShift = ceil((size(allBWFora(:,:,1),1) - size(BW,1))/2) + 1 : ceil((size(allBWFora(:,:,1),1) - size(BW,1))/2) + size(BW,1);
+                colShift = ceil((size(allBWFora(:,:,1),2) - size(BW,2))/2) + 1 : ceil((size(allBWFora(:,:,1),2) - size(BW,2))/2) + size(BW,2);
+                allBWFora(1:size(rotatedIm,1),1:size(rotatedIm,2),nCollectedFrames) = BW;
+                
+            elseif chbr == 'NC'
+                rowShift = ceil((size(allBWNest(:,:,1),1) - size(BW,1))/2) + 1 : ceil((size(allBWNest(:,:,1),1) - size(BW,1))/2) + size(BW,1);
+                colShift = ceil((size(allBWNest(:,:,1),2) - size(BW,2))/2) + 1 : ceil((size(allBWNest(:,:,1),2) - size(BW,2))/2) + size(BW,2);               
+                allBWNest(1:size(rotatedIm,1),1:size(rotatedIm,2),nCollectedFrames) = BW;
+            end
 
-            allBW(rowShift,colShift,i) = BW;
+%             allBW(rowShift,colShift,nCollectedFrames) = BW;
             
             % figure(1)
             % subplot(2,2,1)
