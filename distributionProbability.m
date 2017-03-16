@@ -51,9 +51,11 @@ rng default % for reproducibility
 tagScale = 0.11;
 nSample = 20;
 nBees = numel(beeTagNumber);
+theoFrames = 8*nSample*nBees;
 
-allBWFora = nan(500,500,8*nSample*nBees);
-allBWNest = nan(500,500,8*nSample*nBees);
+allBW = nan(800,800,theoFrames);
+% allBWFora = nan(500,500,8*nSample*nBees);
+% allBWNest = nan(500,500,8*nSample*nBees);
 
 i = 0;
 
@@ -109,12 +111,14 @@ for Bs = 1:nBees
         nSampleAdjusted = min(nSample,numel(detectFrames));
         sampleFrames = datasample(detectFrames, nSampleAdjusted, 'replace', false);
         
-        for catchFrame = sampleFrames
+        for frm = 1:numel(sampleFrames)
             %
             %         catchFrame = sampleFrames(1);
             i = i + 1;
             
+            catchFrame = sampleFrames(frm);
             im = read(mov,catchFrame);
+            im = rgb2gray(im);
             coord = coordinates(catchFrame,bee,:);
             
             xfront = coord(:,:,3);
@@ -127,33 +131,52 @@ for Bs = 1:nBees
             angle = atan2(yfront - ycenter,xfront - xcenter);
             angle = angle .* (angle >= 0) + (angle + 2 * pi) .* (angle < 0);
             
-            pxLength = sizeB(1)*vidScale/tagScale;
-            xbarycenter = xcenter + 1/4*pxLength*cos(angle+pi);
-            ybarycenter = ycenter + 1/4*pxLength*sin(angle+pi);
+%             pxLength = sizeB(1)*vidScale/tagScale;
+%             xbarycenter = xcenter + 1/4*pxLength*cos(angle+pi);
+%             ybarycenter = ycenter + 1/4*pxLength*sin(angle+pi);
             
-            %         imshow(im)
-            %         hold on
-            %         plot(xbarycenter, ybarycenter, 'ro' )
-            %         plot(xcenter,ycenter, 'bo')
-            %
-            %         xmin = coord(:,:,1) - 0.5*vidScale/tagScale;
-            %         ymin = coord(:,:,2) - 0.5*vidScale/tagScale;
-            imCrop = imcrop(im, [xbarycenter - 0.5*vidScale/tagScale, ybarycenter - 0.5*vidScale/tagScale, vidScale/tagScale, vidScale/tagScale]);
-            
-            %         angle = atan2(coord(:,:,4) - coord(:,:,2), coord(:,:,3) - coord(:,:,1));
+%             imshow(im)
+%             hold on
+%             plot(xbarycenter, ybarycenter, 'ro' )
+%             plot(xcenter,ycenter, 'bo')
+%             
+%             xmin = coord(:,:,1) - 0.5*vidScale/tagScale;
+%             ymin = coord(:,:,2) - 0.5*vidScale/tagScale;
+            fullCrop = uint8(zeros(ceil(2 * vidScale/tagScale),ceil(2 * vidScale/tagScale)));
+            cropXRange = ceil(xcenter - vidScale/tagScale : xcenter - vidScale/tagScale + 2 * vidScale/tagScale);
+            cropYRange = ceil(ycenter - vidScale/tagScale : ycenter - vidScale/tagScale + 2 * vidScale/tagScale);
+            xInRange = cropXRange > 0 & cropXRange <= size(im,2);
+            yInRange = cropYRange > 0 & cropYRange <= size(im,1);
+            imCrop = imcrop(im, [cropXRange(1), cropYRange(1), numel(cropXRange)-1, numel(cropYRange)-1]);
+            fullCrop(yInRange, xInRange) = imCrop;
+%             angle = atan2(coord(:,:,4) - coord(:,:,2), coord(:,:,3) - coord(:,:,1));
             rotationAngleDegrees = rad2deg(pi/2 + angle);
-            rotatedIm = imrotate(imCrop, rotationAngleDegrees);
+            rotatedIm = imrotate(fullCrop, rotationAngleDegrees);
             figure
-            %         imshow(rotatedIm)
+            
+%             subplot(1,2,1)
+%             imshow(im)
+%             hold on
+%             plot(xcenter,ycenter, 'ro')
+%             subplot(1,2,2)
+%             imshow(rotatedIm)
+%             disp(['Bee ', num2str(Bs), '/', num2str(nBees), ' Frame ', num2str(i), '/', num2str(theoFrames)])
             
             BW = roipoly(rotatedIm);
+%             hold on
+%             plot(xcenter, ycenter, 'ro')
             close
             
-            if chbr == 'FC'
-                allBWFora(1:size(rotatedIm,1),1:size(rotatedIm,2),i) = BW;
-            elseif chbr == 'NC'
-                allBWNest(1:size(rotatedIm,1),1:size(rotatedIm,2),i) = BW;
-            end
+            rowShift = ceil((size(allBW(:,:,1),1) - size(BW,1))/2) + 1 : ceil((size(allBW(:,:,1),1) - size(BW,1))/2) + size(BW,1);
+            colShift = ceil((size(allBW(:,:,1),2) - size(BW,2))/2) + 1 : ceil((size(allBW(:,:,1),2) - size(BW,2))/2) + size(BW,2);
+            
+%             if chbr == 'FC'
+%                 allBWFora(1:size(rotatedIm,1),1:size(rotatedIm,2),i) = BW;
+%             elseif chbr == 'NC'
+%                 allBWNest(1:size(rotatedIm,1),1:size(rotatedIm,2),i) = BW;
+%             end
+
+            allBW(rowShift,colShift,i) = BW;
             
             % figure(1)
             % subplot(2,2,1)
@@ -179,19 +202,23 @@ nEffNest = size(allBWNest,3) - size(find(isnan(allBWNest(1,1,:))),1); % 60
 
 probFora = sum(allBWFora,3, 'omitnan')/nEffFora;
 probNest = sum(allBWFora,3, 'omitnan')/nEffNest;
-probTot = (sum(allBWFora,3, 'omitnan') + sum(allBWFora(1:size(allBWFora,1),1:size(allBWFora,2),:),3, 'omitnan')) / (nEffFora + nEffNest);
+probTot = (sum(allBWFora,3, 'omitnan') + sum(allBWNest(1:size(allBWFora,1),1:size(allBWFora,2),:),3, 'omitnan')) / (nEffFora + nEffNest);
+
+probFora = mean(allBWFora,3, 'omitnan');
+probNest = mean(allBWNest,3, 'omitnan');
+probTot = mean(allBWFora);
 
 % probTot = csvread('probBodyDistrib.csv');
 
-bwProb = probTot > 0.4;
+bwProb = probFora > 0.4;
 imshow(bwProb)
 
 region = regionprops(bwProb, 'centroid');
 limits = ceil(region.Centroid * 2);
-cropProbTot = probTot(1:limits(2), 1:limits(1));
+cropProbFora = probFora(1:limits(2), 1:limits(1));
 marginTop = ceil((limits(2) - limits(1))/2);
 marginBot = floor((limits(2) - limits(1))/2);
-imshow(cropProbTot)
+imshow(cropProbFora)
 hold on
 plot(region.Centroid(1),region.Centroid(2), 'ro')
 % [x, y] = ginput(4);
@@ -200,6 +227,7 @@ hold off
 
 % csvwrite('probBodyDistrib.csv', cropProbTot);
 % 
+% csvwrite('probFCDistrib.csv', probFora);
 % probLength = sqrt((x(1) - x(2))^2 + (y(1) - y(2))^2);
 % probWidth = sqrt((x(3) - x(4))^2 + (y(3) - y(4))^2);
 % meanSize = [meanLength, meanWidth; probLength, probWidth; region.Centroid(1), region.Centroid(2)];
