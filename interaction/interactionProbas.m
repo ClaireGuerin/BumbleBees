@@ -1,23 +1,11 @@
-% function [allBeesDistri] = calculateInteractionsProbs(tag,bsize,distri,orientation,mnSiz,im,vis)
-function [interactionsMat, orientationsMat] = calculateInteractionsProbs(tag,bsize,distri,orientation,mnSiz,im,vis)
-% tag = tagPos;
-% bsize = beeShape;
-% distri = probBodyResized;
-% orientation = frontMapResized;
-% mnSiz = meanSize;
-% im = fImage;
-% vis = visualize;
+function [interactionsMat, orientationsMat] = interactionProbas(tag,bsize,distri,orientation,mnSiz,im,vis)
 
 map = hot;
-% mapPlot = map((map(:,2) ~= 0 | map(:,3) ~= 0),:);
 colorSteps = size(map,1);
 rangeValues = linspace(0, 1, colorSteps);
 
-% meanMeas = mnSiz(1,:);
 probWidth = mnSiz(2,2);
 probLength = mnSiz(2,1);
-% centProb = mnSiz(3,:); % centroid pos
-% sizePx = mnSiz(3,:);
 
 xcenter = tag(1,:);
 ycenter = tag(2,:);
@@ -38,8 +26,6 @@ backGround = zeros(fHeight,fWidth);
 
 angle = atan2(yfront - ycenter, xfront - xcenter);
 angle = angle .* (angle >= 0) + (angle + 2 * pi) .* (angle < 0); % to have the angle between 0 and 2pi.
-% xbarycenter = xcenter + 1/4*sizePx(1)*cos(angle+pi);
-% ybarycenter = ycenter + 1/4*sizePx(1)*sin(angle+pi);
 rotationAngleDegrees = rad2deg(3*pi/2 - angle);
 
 % INTERACTION DETECTION
@@ -86,39 +72,10 @@ if nPresentB > 1
         imagesc(nansum(allBeesDistri,3));
         caxis([0, 2])
         axis off
-%         axis equal
         axis image
         colormap(map)
         
     end
-    
-%     if vis == 1
-%         
-%         mask = nanmax(allBeesDistri,[],3);
-%         colImage = cat(3, zeros(size(im)), zeros(size(im)), ones(size(im))); %Single color image, this one is blue
-%         maxOpacity = 0.7; %Set the maximum opacity values across all pixels (must be 0-1)
-%         imshow(im);
-%         hold on
-%         h = imshow(colImage);
-%         set(h, 'AlphaData', mask.*maxOpacity);
-% 
-% %         heatMapData = 
-% %         imagesc(heatMapData);
-% %         hold on
-% % %         positiveProb = heatMapData ~= 0;
-% % %         alphaMap = double(positiveProb);
-% % %         alphaMap(positiveProb) = 0.2;
-% % %         alpha(h, alphaMap)
-% %         caxis([0, 2])
-% %         axis off
-% % %         axis equal
-% %         axis image
-% %         colormap(map)
-% %         h = imshow(im);
-% %         set(h, 'AlphaData', 0.2)
-% %         plot(xcenter, ycenter, '.', 'Color', map(1,:), 'MarkerSize', 15)
-%     
-%     end
     
     combos = nchoosek(1:nPresentB,2);
     
@@ -127,22 +84,10 @@ if nPresentB > 1
         bee2 = combos(pair,2);
         interbee = allBeesDistri(:,:,bee1).*allBeesDistri(:,:,bee2);
         orientbee = allBeesOrient(:,:,bee1) + allBeesOrient(:,:,bee2);
-        % 0 = posterior-posterior;
-        % 1 = posterior-anterior;
-        % 2 = anterior-anterior;
-        % NaN = no px overlap
-        
-%         subplot(1,2,1)
-%         imagesc(allBeesDistri(:,:,bee1))
-%         axis equal
-%         subplot(1,2,2)
-%         imagesc(allBeesDistri(:,:,bee2))
-%         axis equal
         
         intB1 = bHere(bee1);
         intB2 = bHere(bee2);
         P = reshape(interbee, numel(interbee),1);
-%         P = 1-prod(1-P);
         Prob = max(P);
         interactionsMat(intB1,intB2) = Prob;
 
@@ -163,12 +108,3 @@ if nPresentB > 1
     end
 
 end
-
-%%
-
-%[x, y] = ind2sub([frameWidth,frameHeight],px);
-%presence = x^2./a.^2 + y^2./b.^2 <= 1 + interaction_range;
-%temp = full(pxVal,px);
-%pxVal(px,:) = presence;
-%pxVal = sparse(pxVal);
-%clearvars im xcenter ycenter xfront yfront a b slope angle x1 x2 y1 y2 t x y w x y bHere nPresentB BW combos interbee
