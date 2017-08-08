@@ -28,7 +28,6 @@ midLine = ceil(region.Centroid(2));
 frontMap = zeros(size(probBody));
 frontMap(1:midLine,:) = 1;
 frontMap = logical(frontMap);
-
 %
 
 % start the parallel pool with 2 workers

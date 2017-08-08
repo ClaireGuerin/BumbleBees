@@ -12,6 +12,6 @@
 
 mkdir -p /scratch/$USER/$SLURM_JOB_ID
 
-srun -c 32 matlab-default -nosplash -nodesktop -r "trackchicks;exit"
+srun -c 32 matlab-default -nosplash -nodesktop -r "interactionsOdyssey;exit"
 
 rm -rf /scratch/$USER/$SLURM_JOB_ID
