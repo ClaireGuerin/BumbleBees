@@ -21,8 +21,8 @@ for fff = 1:nFiles
 
 	coordinates = S.trackingData;
 	taglist = S.taglist;
-	toKeep = ismember(allTags, sizes(1,:));
-	coordPlain = coordinates(:,toKeep,:); % only keep tracking data of bees for which we have ovary scores (and sizes)
+	%toKeep = ismember(allTags, sizes(1,:));
+	%coordPlain = coordinates(:,toKeep,:); % only keep tracking data of bees for which we have ovary scores (and sizes)
 
 	videos = raw(2:size(raw,1),1);
 	nChar = size(vidFile,2);
@@ -38,7 +38,10 @@ for fff = 1:nFiles
 	coordCorr = coordinates;
 	xCenter = coordCorr(:,:,1); %isolate x-coordinates
 	xFront = coordCorr(:,:,3);
-
+	
+	xCenter((frame+1):end,:) = mod(xCenter((frame+1):end,:)+ movWidth - line,movWidth);
+	xFront((frame+1):end,:) = mod(xFront((frame+1):end,:)+ movWidth - line,movWidth);
+	
 	%load back into coordCoor:
 	coordCorr(:,:,1) = xCenter;
 	coordCorr(:,:,3) = xFront;
