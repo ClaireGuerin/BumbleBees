@@ -1,4 +1,4 @@
-function [interactionsMat, orientationsMat] = interactionProbas(tag,bsize,distri,orientation,mnSiz,im,vis)
+function [interactionsMat, orientationsMat] = interactionProbas(tag,bsize,distri,orientation,mnSiz,im)
 
 map = hot;
 colorSteps = size(map,1);
@@ -18,8 +18,8 @@ widthFactor = wid/ probWidth;
 lengthFactor = len / probLength;
 sizeFactor = nanmean([widthFactor; lengthFactor],1);
 
-fHeight = size(im,1);
-fWidth = size(im,2);
+fWidth = im(1);
+fHeight = im(2));
 backGround = zeros(fHeight,fWidth);
 
 % ORIENTATION
@@ -62,21 +62,6 @@ if nPresentB > 1
         
     end
     
-    if vis
-
-        subplot(1,2,1)
-        imshow(im);
-        hold on
-        plot(xcenter, ycenter, '.', 'Color', map(1,:), 'MarkerSize', 15)
-        subplot(1,2,2)
-        imagesc(nansum(allBeesDistri,3));
-        caxis([0, 2])
-        axis off
-        axis image
-        colormap(map)
-        
-    end
-    
     combos = nchoosek(1:nPresentB,2);
     
     for pair = 1:size(combos,1)
@@ -95,16 +80,6 @@ if nPresentB > 1
         [~, MaxInd] = max(F);
         orientationsMat(intB1,intB2) = M(MaxInd);
         
-        if vis && P > 0
-            
-            valDiff = rangeValues - P;
-            [~, indx] = min(abs(valDiff));
-            subplot(1,2,1)
-            plot(xcenter(:,[intB1,intB2]), ycenter(:,[intB1, intB2]), '-', 'Color', map(indx,:), 'LineWidth', 1)
-            txt = num2str(P);
-            text(mean(xcenter(:,[intB1,intB2])), mean(ycenter(:,[intB1, intB2])), txt, 'Color', map(indx,:))
-            
-        end
     end
 
 end

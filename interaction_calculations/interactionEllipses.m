@@ -1,12 +1,12 @@
-function fInteractions = interactionEllipses(tag,shape,expansion,im,vis)
+function fInteractions = interactionEllipses(tag,shape,expansion,imSize)
 
 xcenter = tag(1,:);
 ycenter = tag(2,:);
 xfront = tag(3,:);
 yfront = tag(4,:);
 
-fHeight = size(im,1);
-fWidth = size(im,2);
+fWidth = imSize(1);
+fHeight = imSize(2);
 
 % ELLIPSES PARAMETERS
 
@@ -30,11 +30,6 @@ nPresentB = size(bHere,2);
 nPop = size(xcenter,2);
 fInteractions = zeros(nPop,nPop);
 
-if vis == 1
-    imshow(im)
-    hold on
-end
-
 if nPresentB > 1
     BW = nan(fHeight,fWidth,nPresentB);
     
@@ -44,10 +39,6 @@ if nPresentB > 1
     
     combos = nchoosek(1:nPresentB,2);
     
-    if vis == 1
-        plot(x(:,bHere),y(:,bHere), 'y', 'LineWidth', 2)
-    end
-    
     for pair = 1:size(combos,1)
         bee1 = combos(pair,1);
         bee2 = combos(pair,2);
@@ -56,10 +47,6 @@ if nPresentB > 1
         intB1 = bHere(bee1);
         intB2 = bHere(bee2);
         fInteractions(intB1,intB2) = interbee;
-        
-        if vis == 1 && interbee
-            plot(x(:,[bHere(bee1),bHere(bee2)]),y(:,[bHere(bee1),bHere(bee2)]),'r', 'LineWidth', 2)
-        end
         
     end
 end

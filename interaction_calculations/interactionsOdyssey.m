@@ -1,10 +1,10 @@
 % IMPORT DATA
-pathname = '/n/regal/debivort_lab/claire/bees/'; 
+pathname = '/n/regal/debivort_lab/claire/bees/track'; 
 cd(pathname)
 
-k = dir('*.avi'); % list videos in path
-vidNames = {k.name}'; 
-nVid = size(vidNames,1); % number of videos
+k = dir('*tracked.mat'); % list tracking data in path
+fileNames = {k.name}'; 
+nFiles = size(fileNames,1); % number of files
 
 revFile = 'reverseFrames.xlsx'; % file for coordinates correction of corrupted vids
 [num, text, raw] = xlsread(revFile);
@@ -30,18 +30,16 @@ frontMap(1:midLine,:) = 1;
 frontMap = logical(frontMap);
 %
 
-% start the parallel pool with 2 workers
+% start the parallel pool with n workers
 pc = parcluster('local');
 pc.JobStorageLocation = strcat('/scratch/cguerin/', getenv('SLURM_JOB_ID'));
 parpool(pc, 32)
 
-for video = 1:nVid
+for file = 1:nFiles
     
-    vidFile = vidNames{video};
-    vid = VideoReader(strcat(pathname,vidFile));    
-	[colony, date, time, chbr] = strread(vidFile, '%s %s %s %s', 'delimiter','_');
+    trackFile = fileNames{file};    
+	[colony, date, time, chbr, trim] = strread(trackFile, '%s %s %s %s %s', 'delimiter','_');
     chbr = cellstr(chbr{1}(1:end-4));
-    trackFile  = strcat(vidFile,'_tracked.mat');
     S = load(strcat(pathname,trackFile));   
 	sizesFile = strcat(colony,'sizes.csv');
 	sizes = csvread(strcat(pathname,char(sizesFile)));
@@ -50,9 +48,14 @@ for video = 1:nVid
     taglist = S.taglist;
     popSize = size(taglist,1);
     
-    nFrames = vid.NumberOfFrames;
-    frameWidth = vid.Width;
-    frameHeight = vid.Height;
+    nFrames = size(coordinates,1);
+	if strcmp(chbr{1},'FC')
+		frameWidth = 2448;
+		frameHeight = 2048;
+	else
+		frameWidth = 1288;
+		frameHeight = 964;		
+	end
     
     % CHANGE ZEROs TO NaNs & CORRECT TRACKING DATA
     
@@ -77,8 +80,8 @@ for video = 1:nVid
 	end
 
     allVideos = raw(2:size(raw,1),1);
-    nChar = size(vidFile,2);
-    myVid = find(all(char(allVideos) == vidFile(1:end-4),2));
+    %nChar = size(vidFile,2);
+    myVid = find(all(char(allVideos) == trackFile(1:end-16),2));
     shiftFrame = cell2mat(raw(myVid+1,2));
     shiftLine = cell2mat(raw(myVid+1,3));
     delete = cell2mat(raw(myVid+1,4));
@@ -103,7 +106,7 @@ for video = 1:nVid
     
     % ADAPT SIZES WITH SCALE
     
-    vidScale = scales(strcmp(fileS, vidFile));
+    vidScale = scales(strcmp(fileS, trackFile(1:end-12)));
     tagEdge = 0.11;
     len = vidScale * sizes(2,:) / tagEdge;
     width = vidScale * sizes(3,:) / tagEdge;
@@ -129,7 +132,6 @@ for video = 1:nVid
     
     interEllipses = zeros(popSize, popSize, nFrames);
     sizeFactor = 1.2; % bee size + 20% of the body
-    visualize = 0;
 	
 	interProbabilities = nan(popSize, popSize, nFrames);
 	orientations = nan(popSize, popSize, nFrames);
@@ -141,22 +143,18 @@ for video = 1:nVid
     
     parfor frm = 1:nFrames
 
-        fImage = read(vid,frm);
+        fImage = [frameWidth,frameHeight]; % image size
         tagPos = nan(4,popSize);
         tagPos(1,:) = cXs(frm,:);
         tagPos(2,:) = cYs(frm,:);
         tagPos(3,:) = fXs(frm,:);
         tagPos(4,:) = fYs(frm,:);
         
-        interEllipses(:,:,frm) = interactionEllipses(tagPos,beeShape,sizeFactor,fImage,visualize);
-		[interProbabilities(:,:,frm), orientations(:,:,frm)] = interactionProbas(tagPos,beeShape,probBodyResized,frontMapResized,meanSize,fImage,visualize);
-        
-        if visualize == 1
-            hold off
-        end
+        interEllipses(:,:,frm) = interactionEllipses(tagPos,beeShape,sizeFactor,fImage);
+		[interProbabilities(:,:,frm), orientations(:,:,frm)] = interactionProbas(tagPos,beeShape,probBodyResized,frontMapResized,meanSize,fImage);
         
     end
     
     
-    save(strcat(vidFile, '_interactions.mat'), 'interEllipses', 'interProbabilities', 'orientations','taglist');
+    save(strcat(trackFile, '_interactions.mat'), 'interEllipses', 'interProbabilities', 'orientations','taglist');
 end
