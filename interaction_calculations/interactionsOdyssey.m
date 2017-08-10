@@ -1,5 +1,5 @@
 % IMPORT DATA
-pathname = '/n/regal/debivort_lab/claire/bees/track'; 
+pathname = '/n/regal/debivort_lab/claire/bees/track/track'; 
 cd(pathname)
 
 k = dir('*tracked.mat'); % list tracking data in path
