@@ -33,7 +33,8 @@ frontMap = logical(frontMap);
 % start the parallel pool with n workers
 % pc = parcluster('local');
 % pc.JobStorageLocation = strcat('/scratch/cguerin/', getenv('SLURM_JOB_ID'));
-parpool(4)
+pc = parpool(4);
+pc.IdleTimeout = 120;
 
 for file = 2
     

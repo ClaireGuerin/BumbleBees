@@ -1,4 +1,4 @@
-function [revFile,fileS, scales] = getFiles(PathName) 
+function [num, text, raw,fileS, scales] = getFiles(PathName) 
 
 revFile = 'reverseFrames.xlsx'; % file for coordinates correction of corrupted vids
 [num, text, raw] = xlsread([PathName,revFile]);

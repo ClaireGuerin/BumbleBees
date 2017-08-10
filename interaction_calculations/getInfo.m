@@ -1,4 +1,4 @@
-function [sizes, shiftFrame, shiftLine, delete] = getInfo(pathname,trackFile,colony)
+function [sizes, shiftFrame, shiftLine, delete] = getInfo(pathname,trackFile,colony,raw)
 
 sizesFile = strcat(colony,'sizes.csv');
 sizes = csvread(strcat(pathname,char(sizesFile)));

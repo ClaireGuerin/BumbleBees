@@ -25,7 +25,7 @@ for colNum = 1:nColonies
         chbr = cellstr(chbr{1}(1:end-4));
         S = load(strcat(pathname,trackFile));
         
-        [sizes, shiftFrame, shiftLine, delete] = getInfo(pathname,trackFile,colony)
+        [sizes, shiftFrame, shiftLine, delete] = getInfo(pathname,trackFile,colony);
         
         coordinates = S.trackingData;
         taglist = S.taglist;

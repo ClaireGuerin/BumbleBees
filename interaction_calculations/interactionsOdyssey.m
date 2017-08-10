@@ -1,15 +1,14 @@
 % IMPORT DATA
 pathname = '/n/regal/debivort_lab/claire/bees/track/track/'; 
-cd(pathname)
 
-k = dir('*tracked.mat'); % list tracking data in path
+k = dir([pathname,'*tracked.mat']); % list tracking data in path
 fileNames = {k.name}'; 
 nFiles = size(fileNames,1); % number of files
 
-revFile = 'reverseFrames.xlsx'; % file for coordinates correction of corrupted vids
+revFile = [pathname,'reverseFrames.xlsx']; % file for coordinates correction of corrupted vids
 [num, text, raw] = xlsread(revFile);
 
-scalesFile = fopen(strcat(pathname,'vidScales.txt')); % file of video scaling
+scalesFile = fopen([pathname,'vidScales.txt']); % file of video scaling
 C_text = textscan(scalesFile,'%s',2,'Delimiter',',');
 C_data = textscan(scalesFile,'%s %n', 'Delimiter',',');
 fclose(scalesFile);
@@ -18,8 +17,8 @@ scales = C_data{2};
 
 % FOR PROBA
 
-probBody = csvread('probBodyDistribCenteredAll.csv');
-meanSize = csvread('meanBeeSizeCentAll.csv');
+probBody = csvread([pathname,'probBodyDistribCenteredAll.csv']);
+meanSize = csvread([pathname,'meanBeeSizeCentAll.csv']);
 
 bwProb = probBody > 0.2;
 
@@ -40,7 +39,7 @@ for file = 1:nFiles
     trackFile = fileNames{file};    
 	[colony, date, time, chbr, trim] = strread(trackFile, '%s %s %s %s %s', 'delimiter','_');
     chbr = cellstr(chbr{1}(1:end-4));
-    S = load(strcat(pathname,trackFile));   
+    S = load([pathname,trackFile]);   
 	sizesFile = strcat(colony,'sizes.csv');
 	sizes = csvread(strcat(pathname,char(sizesFile)));
    
@@ -156,5 +155,5 @@ for file = 1:nFiles
     end
     
     
-    save(strcat(trackFile, '_interactions.mat'), 'interEllipses', 'interProbabilities', 'orientations','taglist');
+    save(strcat(pathname,trackFile, '_interactions.mat'), 'interEllipses', 'interProbabilities', 'orientations','taglist');
 end

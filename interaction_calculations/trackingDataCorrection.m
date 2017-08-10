@@ -1,6 +1,7 @@
 function coordCorr = trackingDataCorrection(coordinates, shiftFrame, shiftLine, frameWidth)
 
 coordinates(coordinates==0) = NaN;
+nFrames = size(coordinates,1);
 popSize = size(coordinates,2);
 
 for indiv = 1:popSize

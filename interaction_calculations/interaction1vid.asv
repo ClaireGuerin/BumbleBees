@@ -1,5 +1,5 @@
 % IMPORT DATA
-pathname = 'H:\Academia\BumbleBees2016\Behav_Ovaries\Behav\Odyssey\allFiles\track'; 
+pathname = 'H:\Academia\BumbleBees2016\Behav_Ovaries\Behav\Odyssey\allFiles\track\'; 
 cd(pathname)
 
 k = dir('*tracked.mat'); % list tracking data in path
@@ -33,7 +33,7 @@ frontMap = logical(frontMap);
 % start the parallel pool with n workers
 % pc = parcluster('local');
 % pc.JobStorageLocation = strcat('/scratch/cguerin/', getenv('SLURM_JOB_ID'));
-parpool(pc, 4)
+parpool(4, 'IdleTimeOut',120)
 
 for file = 2
     
@@ -130,7 +130,7 @@ for file = 2
 
     % INTERACTIONS QUANTIFICATION: PARPOOL
     
-    nFrames = eil(nFrames/6)
+    nFrames = ceil(nFrames/6);
     
     interEllipses = zeros(popSize, popSize, nFrames);
     sizeFactor = 1.2; % bee size + 20% of the body
@@ -143,7 +143,7 @@ for file = 2
     fXs = coordFixed(:,:,3);
     fYs = coordFixed(:,:,4);
     
-    parfor frm = 1:cnFrames
+    parfor frm = 1:nFrames
 
         fImage = [frameWidth,frameHeight]; % image size
         tagPos = nan(4,popSize);
