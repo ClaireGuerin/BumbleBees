@@ -1,4 +1,4 @@
-function [coordCorr] = trackingDataCorrection(coordinates, shiftFrame, shiftLine, frameWidth)
+function coordCorr = trackingDataCorrection(coordinates, shiftFrame, shiftLine, frameWidth)
 
 coordinates(coordinates==0) = NaN;
 popSize = size(coordinates,2);

@@ -1,5 +1,5 @@
 % IMPORT DATA
-pathname = '/n/regal/debivort_lab/claire/bees/track/track/'; 
+pathname = 'H:\Academia\BumbleBees2016\Behav_Ovaries\Behav\Odyssey\allFiles\track\'; 
 cd(pathname)
 
 k = dir('*tracked.mat'); % list tracking data in path
@@ -31,11 +31,11 @@ frontMap = logical(frontMap);
 %
 
 % start the parallel pool with n workers
-pc = parcluster('local');
-pc.JobStorageLocation = strcat('/scratch/cguerin/', getenv('SLURM_JOB_ID'));
-parpool(pc, 32)
+% pc = parcluster('local');
+% pc.JobStorageLocation = strcat('/scratch/cguerin/', getenv('SLURM_JOB_ID'));
+parpool(4)
 
-for file = 1:nFiles
+for file = 2
     
     trackFile = fileNames{file};    
 	[colony, date, time, chbr, trim] = strread(trackFile, '%s %s %s %s %s', 'delimiter','_');
@@ -129,6 +129,8 @@ for file = 1:nFiles
 	%
 
     % INTERACTIONS QUANTIFICATION: PARPOOL
+    
+    nFrames = ceil(nFrames/6);
     
     interEllipses = zeros(popSize, popSize, nFrames);
     sizeFactor = 1.2; % bee size + 20% of the body
