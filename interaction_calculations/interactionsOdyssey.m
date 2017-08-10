@@ -74,7 +74,7 @@ for file = 1:nFiles
 			meanMovement = nanmean(movement);
         
 			if meanMovement < 6
-				coordinates(:,indiv,:) = NaN; % bee didn't actually move
+				coordinates(:,indiv,:) = firstPos; % bee didn't actually move
 			end
 		end
 	end
