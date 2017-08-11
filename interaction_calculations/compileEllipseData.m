@@ -1,6 +1,6 @@
 %% Load data
 
-pathname = strcat('H:\Academia\BumbleBees2016\Behav_Ovaries\Behav\Odyssey\allFiles\track\');
+pathname = strcat('H:\Academia\BumbleBees2016\Behav_Ovaries\Behav\');
 cd(pathname)
 
 videoFiles = dir('*interactions.mat');
@@ -11,7 +11,7 @@ maxNIndivPerColony = 100;
 maxNComb = size(nchoosek(1:maxNIndivPerColony,2),1);
 nDays = 4;
 nRows = nVideos * maxNComb;
-dataToStore = {'id1';'length1';'width1';'ov1';'id2';'length2';'width2';'ov2';'colony';'chamber';'day';'time';'int.ellps';'int.proba'};
+dataToStore = {'id1';'length1';'width1';'ov1';'id2';'length2';'width2';'ov2';'colony';'chamber';'day';'time';'int.ellps'};
 nColumns = size(dataToStore,1);
 
 compileDat = nan(nRows,nColumns);
@@ -34,8 +34,7 @@ for vNum = 1:nVideos
     
     S = load(vName);
 	
-    ellpsInter = S.interEllipses;
-    probaInter = S.interProbabilities;
+    ellpsInter = S.interactions;
     
     scores = csvread(strcat(colonyName{1}(end), 'ovariescore.csv'));
     sizes = csvread(strcat(colonyName{1},'sizes.csv'));
@@ -55,11 +54,10 @@ for vNum = 1:nVideos
         scored1 = scores(:,1) == ind1;
         scored2 = scores(:,1) == ind2;
         
-        inter1 = S.taglist == ind1;
-        inter2 = S.taglist == ind2;
+        inter1 = S.tagNumbers == ind1;
+        inter2 = S.tagNumbers == ind2;
         
         interactionE = nanmean(nanmean(nanmean(ellpsInter(inter1,inter2,:),3))); % mean number of interactions
-        interactionP = nanmean(nanmean(nanmean(probaInter(inter1,inter2,:),3))); % mean probability of interaction
         
         compileDat(index,1) = sizes(1,fstB); % Individual tag number 1
         compileDat(index,2) = sizes(2,fstB); % Length 1
@@ -86,7 +84,6 @@ for vNum = 1:nVideos
         compileDat(index,11) = recDate; % Day
         compileDat(index,12) = timeDec; % Time of the day
         compileDat(index,13) = interactionE; % Social interactions rate
-        compileDat(index,14) = interactionP; % Proba to interact
         
         index = index + 1;
         
@@ -94,9 +91,9 @@ for vNum = 1:nVideos
 end
 
 out = compileDat(any(compileDat,2),:);
-csvwrite([pathname,'compiledDataForR.csv'],out)
+csvwrite([pathname,'compiledEllipseDataForR.csv'],out)
 
-fileID = fopen([pathname,'compiledDataForR_headers.txt'],'w');
+fileID = fopen([pathname,'compiledEllipseDataForR_headers.txt'],'w');
 formatSpec = '%s\r\n';
 [nrows,ncols] = size(dataToStore);
 for row = 1:nrows

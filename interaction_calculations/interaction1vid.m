@@ -35,7 +35,7 @@ frontMap = logical(frontMap);
 % pc.JobStorageLocation = strcat('/scratch/cguerin/', getenv('SLURM_JOB_ID'));
 pc = parpool(4);
 pc.IdleTimeout = 120;
-
+%%
 for file = 2
     
     trackFile = fileNames{file};    
@@ -131,7 +131,7 @@ for file = 2
 
     % INTERACTIONS QUANTIFICATION: PARPOOL
     
-    nFrames = ceil(nFrames/6);
+%     nFrames = ceil(nFrames/6);
     
     interEllipses = zeros(popSize, popSize, nFrames);
     sizeFactor = 1.2; % bee size + 20% of the body
@@ -143,7 +143,7 @@ for file = 2
     cYs = coordFixed(:,:,2);
     fXs = coordFixed(:,:,3);
     fYs = coordFixed(:,:,4);
-    
+    %%
     parfor frm = 1:nFrames
 
         fImage = [frameWidth,frameHeight]; % image size

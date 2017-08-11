@@ -43,9 +43,9 @@ colonycols_alpha = adjustcolor(colonycols, alpha.f = 0.5)
 colonyNum = apply(cbind(as.character(ABC$colony)), 1, utf8ToInt) - utf8ToInt('A') + 1
 
 plot(ABC$ovscore~ABC$weight.mg, col = 'black', bg=colonycols_alpha[colonyNum], pch = 21, cex = 1.5, xlab = "Weight (mg)", ylab = "Ovarian development score")
-legend('bottomright', legend = c('Colony A','Colony B','Colony C'), col = 'black', pch = 21, pt.bg = colonycols_alpha, bty = 'n')
+legend('bottomright', legend = c('Colony A','Colony B','Colony C'), col = 'black', pch = 21, pt.bg = colonycols_alpha, bty = 'n', pt.cex = 1.5)
 
 qlreg = lm(ovscore~weight.mg, data = ABCQL)
 summary(qlreg)
 abline(qlreg, lwd = 1.5)
-text(500,1,TeX('$R^2 = 0.15$\\newline $p-value = 0.0018$'))
+text(250,4,TeX('$R^2 = 0.15$, $p-value = 0.0018$'))

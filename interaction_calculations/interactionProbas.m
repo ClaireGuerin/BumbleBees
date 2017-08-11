@@ -19,7 +19,7 @@ lengthFactor = len / probLength;
 sizeFactor = nanmean([widthFactor; lengthFactor],1);
 
 fWidth = im(1);
-fHeight = im(2));
+fHeight = im(2);
 backGround = zeros(fHeight,fWidth);
 
 % ORIENTATION
