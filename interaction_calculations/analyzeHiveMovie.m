@@ -1,3 +1,5 @@
+% Adapted from James Crall's script
+
 [filename pathname]  = uigetfile('*avi', 'Select video file for tracking');
 mov = VideoReader(strcat(pathname, '/',filename));
 cd(pathname);
@@ -9,7 +11,7 @@ nframes = mov.NumberOfFrames;
 % load(strcat(camparpath, camparfile));
 %%
 tags = taglist(:,1);
-xcent = zeros(nframes, numel(tags));
+xcent = nan(nframes, numel(tags));
 ycent = nan(nframes, numel(tags));
 frontx = nan(nframes, numel(tags));
 fronty = nan(nframes, numel(tags));
