@@ -1,3 +1,5 @@
+% Author: James Crall
+
 function intData = fixShortNanGaps(inputData, maxGapSize)
 %Code to interpolated NaN gaps in a single dimension for a determined gap
 %interpolates missing data (nans) along columns of "inputData" up to a
