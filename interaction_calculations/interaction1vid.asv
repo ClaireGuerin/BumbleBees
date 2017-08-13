@@ -161,5 +161,5 @@ for file = [10,18]
     
     
     save(strcat(trackFile, '_interactions.mat'), 'interEllipses', 'interProbabilities', 'orientations','taglist');
-    disp(['Saved interactions ', trackFile])
+    disp(['Saved interac'])
 end

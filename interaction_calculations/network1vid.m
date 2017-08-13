@@ -147,3 +147,99 @@ addlegend = cellfun(@num2str, [NaN,num2cell(uniqueScores)], 'UniformOutput', fal
 text(ones(1,5)+1,1:5, addlegend,'FontSize',30,'Color','black', 'BackgroundColor', 'w')
 text(0.5,6,'Ovarian Development Score','FontSize',30,'Color','black', 'BackgroundColor', 'w')
 export_fig 'networklegend.bmp' -m2
+
+
+%% COMPARE WITH PROBA WEIGHT
+pathname = 'H:\Academia\BumbleBees2016\Behav_Ovaries\Behav\Odyssey\allFiles\track\';
+cd(pathname)
+S2 = load([pathname, 'ColonyA_05-Jan-2017_141443_NC.avi_tracked.mat_interactions.mat']);
+ellps = S2.interEllipses;
+meanEllps = nanmean(ellps,3);
+prob = S2.interProbabilities;
+meanProb = nanmean(prob,3);
+
+taglist = S2.taglist;
+nodNames = string(S2.taglist);
+popSize = numel(S2.taglist);
+indivPairs = nchoosek(1:popSize,2);
+queenID = 2123;
+queenIndex = find(taglist == queenID);
+% nodNames(queenIndex) = string('Q');
+[~,scoredInd] = ismember(ovscores(:,1),taglist);
+ovaryScore = nan(size(taglist));
+ovaryScore(scoredInd) = ovscores(:,2);
+uniqueScores = unique(ovscores(:,2))';
+scoreColor = summer(numel(uniqueScores));
+nodeColor = nan([popSize,3]);
+
+for node = 1:popSize
+    indivScore = ovaryScore(node);
+    if isnan(indivScore)
+        nodeColor(node,:) = [0,0,0];
+    else
+        nodeColor(node,:) = scoreColor(uniqueScores == indivScore,:);
+    end
+end
+
+
+G = graph(indivPairs(:, 1),indivPairs(:, 2));
+G.Nodes.Names = nodNames;
+G.Nodes.Score = ovaryScore;
+G.Nodes.Colors = nodeColor;
+
+meanProb(1:10,1:10)
+[I,J] = find(meanEllps > 0);
+ellpsWeight = [indivPairs,nan([size(indivPairs,1),1])];
+assocPairs1 = [I,J];
+assocPairs2 = [J,I];
+
+for n = 1:size(assocPairs1,1)
+    test1 = find(sum(ismember(ellpsWeight(:,1:2),assocPairs1(n,:)),2) == 2);
+    test2 = find(sum(ismember(ellpsWeight(:,1:2),assocPairs2(n,:)),2) == 2);
+    
+    if numel(test1) == 1
+        ellpsWeight(test1,3) = meanEllps(assocPairs1(n,1),assocPairs1(n,2));
+    end
+    
+end
+
+G3 = G;
+G3.Edges.Weight = ellpsWeight(:,3);
+G4 = rmedge(G3,find(isnan(ellpsWeight(:,3))));
+% G2.Edges.NormWeight = G2.Edges.Weight/sum(G2.Edges.Weight);
+LWidths4 = 5*G4.Edges.Weight/max(G4.Edges.Weight);
+
+fig1 = figure(1);clf;
+set(fig1,'defaulttextinterpreter','latex','Color','w');
+p = plot(G4,'Layout','circle','LineWidth',LWidths4,'EdgeColor', [1/3,1/3,1/3],'NodeLabel',cellstr(G4.Nodes.Names),'NodeColor',G4.Nodes.Colors);
+highlight(p,queenIndex)
+axis equal
+title('C. Degree centrality scores - weighted','FontSize',30)
+set(gca,'xtick',[],'ytick',[])
+p.MarkerSize = 10;
+p.Annotation.LegendInformation.IconDisplayStyle = 'off';
+legendLabels = sprintf('%s \n %d \n %d \n %d \n %d','NaN',uniqueScores);
+p.DisplayName = legendLabels;
+
+deg_ranks = centrality(G2, 'degree', 'Importance', G4.Edges.Weight);
+edges = linspace(min(deg_ranks),max(deg_ranks),7);
+bins = discretize(deg_ranks,edges);
+p.MarkerSize = 2*bins;
+export_fig 'network3.bmp' -m2
+
+fig2 = figure(2);clf;
+set(fig2,'defaulttextinterpreter','latex','Color','w');
+p2 = plot(G4,'Layout','circle','LineWidth',LWidths,'EdgeColor', [1/3,1/3,1/3],'NodeLabel',cellstr(G4.Nodes.Names),'NodeColor',G4.Nodes.Colors);
+highlight(p2,queenIndex)
+axis equal
+set(gca,'xtick',[],'ytick',[])
+p2.MarkerSize = 10;
+p2.Annotation.LegendInformation.IconDisplayStyle = 'off';
+legendLabels = sprintf('%s \n %d \n %d \n %d \n %d','NaN',uniqueScores);
+p2.DisplayName = legendLabels;
+wcc = centrality(G4,'closeness','Cost',G4.Edges.Weight);
+p2.NodeCData = wcc;
+colormap jet
+colorbar
+title('D. Closeness centrality scores - weighted','FontSize',30)
+export_fig 'network2.bmp' -m2
