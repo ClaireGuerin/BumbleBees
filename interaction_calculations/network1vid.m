@@ -11,7 +11,7 @@ chbr = cellstr(chbr{1}(1:end-4));
 [num, txt, raw,fileS, scales] = getFiles(pathname);
 [sizes, shiftFrame, shiftLine, delete] = getInfo(pathname,trackFile,colony,raw);
 
-ovscores = csvread('Aovariescore.csv');
+ovscores = csvread([colony{1}(end),'ovariescore.csv']);
 
 coordinates = S.trackingData;
 taglist = S.taglist;
@@ -49,8 +49,8 @@ stepwiseDistMat = stepwiseDistance(coordFixed, scaleFactor, fRate);
 
 nodNames = string(taglist);
 indivPairs = nchoosek(1:popSize,2);
-queenID = 2123;
-queenIndex = find(taglist == queenID);
+% queenID = 2123;
+% queenIndex = find(taglist == queenID);
 % nodNames(queenIndex) = string('Q');
 [~,scoredInd] = ismember(ovscores(:,1),taglist);
 ovaryScore = nan(size(taglist));
@@ -70,6 +70,8 @@ end
 
 meanDist = pairwiseDistancesForNetwork(coordFixed, scaleFactor);
 
+%% CREATE GRAPH
+
 G = graph(indivPairs(:, 1),indivPairs(:, 2));
 G.Nodes.Names = nodNames;
 G.Nodes.Score = ovaryScore;
@@ -85,7 +87,7 @@ fig1 = figure(1);clf;
 set(fig1,'defaulttextinterpreter','latex','Color','w');
 % p = plot(G2,'Layout','circle','EdgeLabel',ceil(G2.Edges.Weight),'LineWidth',LWidths,'EdgeColor', [1/3,1/3,1/3],'NodeLabel',cellstr(G2.Nodes.Names),'NodeColor',G.Nodes.Colors);
 p = plot(G2,'Layout','circle','LineWidth',LWidths,'EdgeColor', [1/3,1/3,1/3],'NodeLabel',cellstr(G2.Nodes.Names),'NodeColor',G.Nodes.Colors);
-highlight(p,queenIndex)
+% highlight(p,queenIndex)
 axis equal
 title('A. Degree centrality scores - weighted','FontSize',30)
 set(gca,'xtick',[],'ytick',[])
@@ -119,12 +121,11 @@ deg_ranks = centrality(G2, 'degree', 'Importance', G2.Edges.Weight);
 edges = linspace(min(deg_ranks),max(deg_ranks),7);
 bins = discretize(deg_ranks,edges);
 p.MarkerSize = 2*bins;
-export_fig 'network1.bmp' -m2
 
 fig2 = figure(2);clf;
 set(fig2,'defaulttextinterpreter','latex','Color','w');
 p2 = plot(G2,'Layout','circle','LineWidth',LWidths,'EdgeColor', [1/3,1/3,1/3],'NodeLabel',cellstr(G2.Nodes.Names),'NodeColor',G.Nodes.Colors);
-highlight(p2,queenIndex)
+% highlight(p2,queenIndex)
 axis equal
 set(gca,'xtick',[],'ytick',[])
 p2.MarkerSize = 10;
@@ -135,51 +136,50 @@ wcc = centrality(G2,'closeness','Cost',G2.Edges.Weight);
 p2.NodeCData = wcc;
 colormap jet
 colorbar
+caxis([0,2*10^(-6)])
 title('B. Closeness centrality scores - weighted','FontSize',30)
-export_fig 'network2.bmp' -m2
 
-fig3 = figure(3);clf;
-set(fig3,'defaulttextinterpreter','latex','Color','w');
-scatter(ones(1,5),1:5,200,[0,0,0;scoreColor],'filled')
-ylim([0,7])
-axis equal
-addlegend = cellfun(@num2str, [NaN,num2cell(uniqueScores)], 'UniformOutput', false);
-text(ones(1,5)+1,1:5, addlegend,'FontSize',30,'Color','black', 'BackgroundColor', 'w')
-text(0.5,6,'Ovarian Development Score','FontSize',30,'Color','black', 'BackgroundColor', 'w')
-export_fig 'networklegend.bmp' -m2
+% fig3 = figure(3);clf;
+% set(fig3,'defaulttextinterpreter','latex','Color','w');
+% scatter(ones(1,5),1:5,200,[0,0,0;scoreColor],'filled')
+% ylim([0,7])
+% axis equal
+% addlegend = cellfun(@num2str, [NaN,num2cell(uniqueScores)], 'UniformOutput', false);
+% text(ones(1,5)+1,1:5, addlegend,'FontSize',30,'Color','black', 'BackgroundColor', 'w')
+% text(0.5,6,'Ovarian Development Score','FontSize',30,'Color','black', 'BackgroundColor', 'w')
+% export_fig 'networklegend.bmp' -m2
 
 
 %% COMPARE WITH PROBA WEIGHT
 pathname = 'H:\Academia\BumbleBees2016\Behav_Ovaries\Behav\Odyssey\allFiles\track\';
 cd(pathname)
-S2 = load([pathname, 'ColonyA_05-Jan-2017_141443_NC.avi_tracked.mat_interactions.mat']);
+S2 = load([pathname, trackFile, '_interactions.mat']);
 ellps = S2.interEllipses;
 meanEllps = nanmean(ellps,3);
 prob = S2.interProbabilities;
 meanProb = nanmean(prob,3);
 
-taglist = S2.taglist;
-nodNames = string(S2.taglist);
-popSize = numel(S2.taglist);
-indivPairs = nchoosek(1:popSize,2);
-queenID = 2123;
-queenIndex = find(taglist == queenID);
-% nodNames(queenIndex) = string('Q');
-[~,scoredInd] = ismember(ovscores(:,1),taglist);
-ovaryScore = nan(size(taglist));
-ovaryScore(scoredInd) = ovscores(:,2);
-uniqueScores = unique(ovscores(:,2))';
-scoreColor = summer(numel(uniqueScores));
-nodeColor = nan([popSize,3]);
-
-for node = 1:popSize
-    indivScore = ovaryScore(node);
-    if isnan(indivScore)
-        nodeColor(node,:) = [0,0,0];
-    else
-        nodeColor(node,:) = scoreColor(uniqueScores == indivScore,:);
-    end
-end
+% taglist = S2.taglist;
+% nodNames = string(S2.taglist);
+% popSize = numel(S2.taglist);
+% indivPairs = nchoosek(1:popSize,2);
+% queenIndex = find(taglist == queenID);
+% % nodNames(queenIndex) = string('Q');
+% [~,scoredInd] = ismember(ovscores(:,1),taglist);
+% ovaryScore = nan(size(taglist));
+% ovaryScore(scoredInd) = ovscores(:,2);
+% uniqueScores = unique(ovscores(:,2))';
+% scoreColor = summer(numel(uniqueScores));
+% nodeColor = nan([popSize,3]);
+% 
+% for node = 1:popSize
+%     indivScore = ovaryScore(node);
+%     if isnan(indivScore)
+%         nodeColor(node,:) = [0,0,0];
+%     else
+%         nodeColor(node,:) = scoreColor(uniqueScores == indivScore,:);
+%     end
+% end
 
 
 G = graph(indivPairs(:, 1),indivPairs(:, 2));
@@ -212,7 +212,7 @@ LWidths4 = 5*G4.Edges.Weight/max(G4.Edges.Weight);
 fig1 = figure(1);clf;
 set(fig1,'defaulttextinterpreter','latex','Color','w');
 p = plot(G4,'Layout','circle','LineWidth',LWidths4,'EdgeColor', [1/3,1/3,1/3],'NodeLabel',cellstr(G4.Nodes.Names),'NodeColor',G4.Nodes.Colors);
-highlight(p,queenIndex)
+% highlight(p,queenIndex)
 axis equal
 title('C. Degree centrality scores - weighted','FontSize',30)
 set(gca,'xtick',[],'ytick',[])
@@ -221,16 +221,15 @@ p.Annotation.LegendInformation.IconDisplayStyle = 'off';
 legendLabels = sprintf('%s \n %d \n %d \n %d \n %d','NaN',uniqueScores);
 p.DisplayName = legendLabels;
 
-deg_ranks = centrality(G2, 'degree', 'Importance', G4.Edges.Weight);
+deg_ranks = centrality(G4, 'degree', 'Importance', G4.Edges.Weight);
 edges = linspace(min(deg_ranks),max(deg_ranks),7);
 bins = discretize(deg_ranks,edges);
 p.MarkerSize = 2*bins;
-export_fig 'network3.bmp' -m2
 
 fig2 = figure(2);clf;
 set(fig2,'defaulttextinterpreter','latex','Color','w');
-p2 = plot(G4,'Layout','circle','LineWidth',LWidths,'EdgeColor', [1/3,1/3,1/3],'NodeLabel',cellstr(G4.Nodes.Names),'NodeColor',G4.Nodes.Colors);
-highlight(p2,queenIndex)
+p2 = plot(G4,'Layout','circle','LineWidth',LWidths4,'EdgeColor', [1/3,1/3,1/3],'NodeLabel',cellstr(G4.Nodes.Names),'NodeColor',G4.Nodes.Colors);
+% highlight(p2,queenIndex)
 axis equal
 set(gca,'xtick',[],'ytick',[])
 p2.MarkerSize = 10;
@@ -241,5 +240,5 @@ wcc = centrality(G4,'closeness','Cost',G4.Edges.Weight);
 p2.NodeCData = wcc;
 colormap jet
 colorbar
+caxis([0,14])
 title('D. Closeness centrality scores - weighted','FontSize',30)
-export_fig 'network2.bmp' -m2
